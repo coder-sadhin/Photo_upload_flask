@@ -60,3 +60,6 @@ def get_product(product_id):
         }), 200
     except:
         return jsonify({"error": "Not found"}), 404
+    
+
+app = app

@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, jsonify, url_for
 import cloudinary
 import cloudinary.uploader
+import cloudinary.api
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
@@ -45,10 +46,10 @@ def file_product():
 @app.route('/get-product/<product_id>')
 def get_product(product_id):
     try:
-        # We look for files starting with the product_id folder name
+        # 1. Direct folder lookup using the Admin API
+        # This is more reliable than the Search API for new uploads
         folder_path = f"artisantrace/{product_id}"
         
-        # This call fetches all images in that specific "folder" on Cloudinary
         result = cloudinary.api.resources(
             type = "upload",
             prefix = folder_path,
@@ -58,9 +59,11 @@ def get_product(product_id):
         resources = result.get('resources', [])
         
         if not resources:
-            return jsonify({"error": "No images found for this ID"}), 404
+            # 2. Log this to Vercel so you can see if the path is wrong
+            print(f"DEBUG: No files found in folder {folder_path}")
+            return jsonify({"error": "No images found"}), 404
 
-        # Extract the secure URLs
+        # 3. Success: Map the secure URLs
         images = [res['secure_url'] for res in resources]
         
         return jsonify({
@@ -70,7 +73,8 @@ def get_product(product_id):
         }), 200
 
     except Exception as e:
-        print(f"Cloudinary Error: {e}")
-        return jsonify({"error": "Server error accessing storage"}), 500
+        # This will show up in your Vercel Logs
+        print(f"CLOUDINARY ERROR: {str(e)}")
+        return jsonify({"error": "Server connection error"}), 500
 
 app = app

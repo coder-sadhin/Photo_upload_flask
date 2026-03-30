@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-6 py-20">
+    <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold tracking-tighter mb-4">Find a Product</h1>
+        <p class="text-zinc-400">Enter the unique product code to view full traceability details</p>
+    </div>
+
+    <div class="glass rounded-3xl p-10 border border-zinc-700">
+        <div class="flex gap-4">
+            <input type="text" id="code_input" placeholder="Enter Product Code (e.g. AT-20260330-7842)"
+                   class="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-8 py-6 text-lg font-mono focus:outline-none focus:border-sky-500">
+            <button onclick="queryProduct()" 
+                    class="px-12 bg-sky-600 hover:bg-sky-500 rounded-2xl font-semibold transition-colors">
+                Search
+            </button>
+        </div>
+
+        <!-- Result will appear here -->
+        <div id="result" class="mt-10 hidden"></div>
+    </div>
+</div>
+
+<script>
+async function queryProduct() {
+    const code = document.getElementById('code_input').value.trim();
+    if (!code) return;
+
+    // Simulate API call (replace with real fetch to your Flask route)
+    const resultDiv = document.getElementById('result');
+    resultDiv.classList.remove('hidden');
+    resultDiv.innerHTML = `
+        <div class="bg-zinc-900 rounded-3xl p-8 animate-pulse">
+            <p class="text-center text-zinc-400">Loading traceability information...</p>
+        </div>
+    `;
+
+    // In real app, replace with actual AJAX call
+    setTimeout(() => {
+        resultDiv.innerHTML = `
+            <div class="bg-emerald-900/30 border border-emerald-500 rounded-3xl p-8">
+                <p class="text-emerald-400 font-medium mb-6">✅ Product Found</p>
+                <h3 class="text-2xl font-semibold mb-6">Handcrafted Ceramic Vase</h3>
+                <div class="grid grid-cols-2 gap-6 text-sm">
+                    <div><span class="text-zinc-500">Code:</span> <span class="font-mono">${code}</span></div>
+                    <div><span class="text-zinc-500">Artisan:</span> Elena Rossi</div>
+                    <div><span class="text-zinc-500">Made on:</span> March 2026</div>
+                    <div><span class="text-zinc-500">Material:</span> Stoneware Clay</div>
+                </div>
+            </div>
+        `;
+    }, 1200);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="relative z-10 min-h-screen pb-20">
+    <header class="border-b border-black/5 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-4 group">
+                <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg animate-float">
+                    <i class="fa-solid fa-handshake text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight"><span class="text-gradient">PhotoStudio</span></h1>
+                    <p class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Handmade • Authentic • Traceable</p>
+                </div>
+            </a>
+
+            <div class="flex items-center gap-3">
+                <button @click="dark = !dark; localStorage.setItem('theme', dark ? 'dark' : 'light')" 
+                        class="w-11 h-11 flex items-center justify-center rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 hover:border-violet-400 transition-all">
+                    <i class="fa-solid" :class="dark ? 'fa-sun' : 'fa-moon'"></i>
+                </button>
+                <a href="/file-product" class="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold rounded-2xl shadow-lg hover:scale-105 transition-transform">
+                    File Product
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 pt-16">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl lg:text-6xl font-extrabold mb-6 dark:text-white leading-tight">
+                Trace the Story Behind <br>
+                <span class="text-gradient">Every Handmade Piece</span>
+            </h2>
+        </div>
+
+        <div class="max-w-2xl mx-auto mb-16">
+            <div class="glass p-2 rounded-3xl border border-violet-500/30 flex items-center shadow-2xl focus-within:ring-2 ring-violet-500/50 transition-all">
+                <div class="pl-6 text-zinc-400"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <input type="text" id="find_query" placeholder="Enter Product ID (e.g. ART-2OYXCYRC5)" 
+                       class="flex-1 bg-transparent border-none px-4 py-4 outline-none text-slate-900 dark:text-white font-mono">
+                <button onclick="handleFind()" class="bg-violet-600 hover:bg-violet-500 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-violet-500/20">
+                    Find
+                </button>
+            </div>
+        </div>
+
+        <div id="not_found_view" class="hidden text-center py-12 animate-fade-in-up">
+            <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-circle-exclamation text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold dark:text-white">Invalid Product ID</h3>
+            <p class="text-zinc-500">No product found matching this code in our records.</p>
+        </div>
+
+        <div id="result_view" class="hidden animate-fade-in-up mb-16">
+             <div class="glass rounded-3xl p-8 border border-emerald-500/20 shadow-2xl">
+                <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8 border-b border-black/5 dark:border-white/5 pb-6">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Verified Authentic</span>
+                        <h2 id="res_name" class="text-3xl font-bold dark:text-white mt-1"></h2>
+                        <p id="res_id" class="font-mono text-zinc-500 mt-1"></p>
+                    </div>
+                </div>
+                <div id="res_images" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+             </div>
+        </div>
+
+        <div class="glass rounded-3xl p-8 lg:p-12 shadow-xl">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card-hover bg-white/50 dark:bg-slate-800/50 p-8 rounded-3xl border border-black/5 dark:border-white/5">
+                    <div class="w-14 h-14 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-6">🔖</div>
+                    <h3 class="text-2xl font-bold mb-3 dark:text-white">Product Filing</h3>
+                    <p class="text-slate-600 dark:text-zinc-400">Register products with unique codes for lifetime traceability.</p>
+                </div>
+                <div class="card-hover bg-white/50 dark:bg-slate-800/50 p-8 rounded-3xl border border-black/5 dark:border-white/5">
+                    <div class="w-14 h-14 bg-sky-500/10 text-sky-600 rounded-xl flex items-center justify-center text-2xl mb-6">🔍</div>
+                    <h3 class="text-2xl font-bold mb-3 dark:text-white">Instant Verification</h3>
+                    <p class="text-slate-600 dark:text-zinc-400">Scan codes to instantly access origin history.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    async function handleFind() {
+        const query = document.getElementById('find_query').value.trim().toUpperCase();
+        const resultView = document.getElementById('result_view');
+        const notFoundView = document.getElementById('not_found_view');
+        const imgContainer = document.getElementById('res_images');
+        
+        if (!query) return alert("Please enter an ID.");
+
+        try {
+            // Fetching from your Flask backend
+            const response = await fetch(`/get-product/${query}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Hide error, Show results
+                notFoundView.classList.add('hidden');
+                resultView.classList.remove('hidden');
+                
+                document.getElementById('res_name').innerText = data.name;
+                document.getElementById('res_id').innerText = "Trace ID: " + data.product_id;
+                
+                imgContainer.innerHTML = '';
+                data.images.forEach(imgUrl => {
+                    imgContainer.innerHTML += `
+                        <div class="aspect-square rounded-2xl overflow-hidden border border-white/10 shadow-lg group bg-zinc-900">
+                            <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        </div>
+                    `;
+                });
+                
+                resultView.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                // Show "Invalid/Nothing" state
+                resultView.classList.add('hidden');
+                notFoundView.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error connecting to server.");
+        }
+    }
+</script>
+{% endblock %}

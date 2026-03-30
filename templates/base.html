@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" x-data="{ dark: true }" :class="{ 'dark': dark }" x-init="dark = (localStorage.getItem('theme') !== 'light')">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoStudio • Handmade Traceability</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'gradient-x': 'gradient-x 15s ease infinite',
+                        'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-20px)' } },
+                        'gradient-x': { 'background-position': '0% 50%', '50%': { 'background-position': '100% 50%' }, '100%': { 'background-position': '0% 50%' } },
+                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(30px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                    },
+                    backgroundImage: {
+                        'mesh-gradient': 'radial-gradient(at 40% 20%, rgba(139,92,246,0.1) 0px, transparent 50%), radial-gradient(at 80% 0%, rgba(56,189,248,0.1) 0px, transparent 50%)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(0, 0, 0, 0.05); }
+        .dark .glass { background: rgba(15, 23, 42, 0.6); border-color: rgba(255, 255, 255, 0.08); }
+        .text-gradient {
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradient-x 8s ease infinite;
+        }
+        .orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.4; pointer-events: none; z-index: 0; }
+        .orb-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%); top: -100px; right: -100px; }
+        .card-hover { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .card-hover:hover { transform: translateY(-8px); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-zinc-100 min-h-screen relative overflow-x-hidden transition-colors duration-500">
+    <div class="fixed inset-0 bg-mesh-gradient pointer-events-none z-0"></div>
+    <div class="orb orb-1"></div>
+
+    {% block content %}{% endblock %}
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

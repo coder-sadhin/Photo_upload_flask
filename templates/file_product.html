@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-12 relative z-10">
+    <a href="/" class="inline-flex items-center gap-2 text-zinc-500 hover:text-violet-500 transition-colors mb-8 group">
+        <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
+        <span class="font-medium">Back to Home</span>
+    </a>
+
+    <div class="glass rounded-3xl p-8 md:p-12 border border-zinc-700/50 shadow-2xl">
+        <div class="flex justify-between items-start mb-10">
+            <div>
+                <h1 class="text-4xl font-bold mb-2 text-slate-900 dark:text-white">File New Product</h1>
+                <p class="text-zinc-500 dark:text-zinc-400">Register your handmade item for permanent traceability.</p>
+            </div>
+            <div class="hidden md:block text-right">
+                <span class="text-[10px] uppercase tracking-widest text-zinc-500">Security</span>
+                <div class="flex items-center gap-2 text-emerald-500 font-mono text-sm">
+                    <i class="fa-solid fa-shield-halved"></i> Verified
+                </div>
+            </div>
+        </div>
+
+        <form id="productForm" method="POST" enctype="multipart/form-data" class="space-y-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <label class="block text-sm font-medium mb-3 text-zinc-700 dark:text-zinc-300">Product Name</label>
+                    <input type="text" name="name" placeholder="e.g. Hand-carved Oak Chair" required 
+                           class="w-full bg-white/50 dark:bg-zinc-900 border border-black/10 dark:border-zinc-700 rounded-2xl px-6 py-4 text-slate-900 dark:text-white focus:border-violet-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-3 text-zinc-700 dark:text-zinc-300">Unique Product ID</label>
+                    <div class="relative">
+                        <input type="text" id="product_id_display" name="product_id" readonly 
+                               class="w-full bg-zinc-100 dark:bg-zinc-800/50 border border-black/5 dark:border-zinc-700 rounded-2xl px-6 py-4 text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+                        <i class="fa-solid fa-lock absolute right-6 top-1/2 -translate-y-1/2 text-zinc-500/50"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-3 text-zinc-700 dark:text-zinc-300">Origin Story & Description</label>
+                <textarea name="description" rows="4" placeholder="Describe the materials, process, and artisan..." required 
+                          class="w-full bg-white/50 dark:bg-zinc-900 border border-black/10 dark:border-zinc-700 rounded-3xl px-6 py-5 text-slate-900 dark:text-white focus:border-violet-500 outline-none transition-all"></textarea>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-4">
+                    <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Product Gallery</label>
+                    <span id="img-count" class="text-xs font-mono text-zinc-500">0 / 3 images</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6" id="image-preview">
+                    <div class="aspect-square rounded-3xl border-2 border-dashed border-black/10 dark:border-zinc-800 flex items-center justify-center text-zinc-300 dark:text-zinc-800 text-4xl">1</div>
+                    <div class="aspect-square rounded-3xl border-2 border-dashed border-black/10 dark:border-zinc-800 flex items-center justify-center text-zinc-300 dark:text-zinc-800 text-4xl">2</div>
+                    <div class="aspect-square rounded-3xl border-2 border-dashed border-black/10 dark:border-zinc-800 flex items-center justify-center text-zinc-300 dark:text-zinc-800 text-4xl">3</div>
+                </div>
+                
+                <input type="file" id="images" name="images" multiple accept="image/*" class="hidden" onchange="handleImageSelection(this)">
+                <button type="button" onclick="document.getElementById('images').click()" 
+                        class="w-full py-6 border-2 border-dashed border-violet-500/30 rounded-3xl hover:bg-violet-500/5 text-violet-500 transition-all flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                    <span class="font-semibold">Upload 3 Product Images</span>
+                </button>
+            </div>
+
+            <button type="submit" class="w-full py-6 bg-gradient-to-r from-violet-600 to-pink-600 rounded-3xl font-bold text-xl text-white shadow-xl shadow-violet-500/20 hover:brightness-110 active:scale-[0.98] transition-all">
+                Register & Authorize Trace
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Auto-ID Generation
+document.addEventListener('DOMContentLoaded', () => {
+    const randomId = 'ART-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    document.getElementById('product_id_display').value = randomId;
+});
+
+// Image Preview Logic
+function handleImageSelection(input) {
+    const container = document.getElementById('image-preview');
+    const countSpan = document.getElementById('img-count');
+    
+    if (input.files.length !== 3) {
+        alert("Please select exactly 3 images.");
+        input.value = ""; 
+        return;
+    }
+
+    container.innerHTML = '';
+    countSpan.innerText = `${input.files.length} / 3 images`;
+    countSpan.classList.add('text-emerald-500');
+
+    Array.from(input.files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            container.innerHTML += `
+            <div class="aspect-square rounded-3xl overflow-hidden border border-violet-500/30 animate-fade-in-up" style="animation-delay: ${index * 0.1}s">
+                <img src="${e.target.result}" class="w-full h-full object-cover">
+            </div>`;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+</script>
+{% endblock %}

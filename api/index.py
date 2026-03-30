@@ -45,21 +45,32 @@ def file_product():
 @app.route('/get-product/<product_id>')
 def get_product(product_id):
     try:
-        # 🔍 Ask Cloudinary for images in that folder
-        resources = cloudinary.api.resources_by_asset_folder(f"artisantrace/{product_id}")
+        # We look for files starting with the product_id folder name
+        folder_path = f"artisantrace/{product_id}"
         
-        images = [res['secure_url'] for res in resources.get('resources', [])]
+        # This call fetches all images in that specific "folder" on Cloudinary
+        result = cloudinary.api.resources(
+            type = "upload",
+            prefix = folder_path,
+            max_results = 10
+        )
         
-        if not images:
-            return jsonify({"error": "Not found"}), 404
+        resources = result.get('resources', [])
+        
+        if not resources:
+            return jsonify({"error": "No images found for this ID"}), 404
 
+        # Extract the secure URLs
+        images = [res['secure_url'] for res in resources]
+        
         return jsonify({
-            "name": "Verified Artisan Item",
+            "name": "Verified Artisan Product",
             "product_id": product_id,
             "images": images
         }), 200
-    except:
-        return jsonify({"error": "Not found"}), 404
-    
+
+    except Exception as e:
+        print(f"Cloudinary Error: {e}")
+        return jsonify({"error": "Server error accessing storage"}), 500
 
 app = app

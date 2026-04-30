@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold dark:text-white">Notifications</h1>
+        {% if unread_count > 0 %}
+        <form method="POST" action="{{ url_for('notifications.mark_all_read') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="text-primary hover:underline text-sm">Mark all as read</button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if notifications %}
+    <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm overflow-hidden">
+        {% for notification in notifications %}
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 {% if not notification.is_read %}bg-blue-50/50 dark:bg-blue-900/10{% endif %} notification-item" id="notification-{{ notification.id }}">
+            <div class="flex items-start space-x-4">
+                <a href="{{ url_for('users.profile', username=notification.actor.username) }}">
+                    <img src="{{ url_for('static', filename='uploads/profile_pics/' + notification.actor.profile.profile_picture) }}"
+                         class="w-12 h-12 rounded-full object-cover">
+                </a>
+
+                <div class="flex-1">
+                    <p class="text-gray-800 dark:text-gray-200">
+                        <a href="{{ url_for('users.profile', username=notification.actor.username) }}" class="font-semibold hover:underline">
+                            {{ notification.actor.username }}
+                        </a>
+
+                        {% if notification.notification_type == 'like' %}
+                            liked your post
+                            {% if notification.post %}
+                            <a href="{{ url_for('posts.view_post', post_id=notification.post_id) }}" class="text-primary hover:underline">View post</a>
+                            {% endif %}
+                        {% elif notification.notification_type == 'comment' %}
+                            commented on your post
+                            {% if notification.post %}
+                            <a href="{{ url_for('posts.view_post', post_id=notification.post_id) }}" class="text-primary hover:underline">View</a>
+                            {% endif %}
+                        {% elif notification.notification_type == 'follow' %}
+                            started following you
+                        {% elif notification.notification_type == 'reply' %}
+                            replied to your comment
+                            {% if notification.comment and notification.comment.post %}
+                            <a href="{{ url_for('posts.view_post', post_id=notification.comment.post_id) }}" class="text-primary hover:underline">View</a>
+                            {% endif %}
+                        {% elif notification.notification_type == 'comment_like' %}
+                            liked your comment
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                    </p>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    {% if not notification.is_read %}
+                    <span class="w-2 h-2 bg-primary rounded-full"></span>
+                    {% endif %}
+
+                    <form method="POST" action="{{ url_for('notifications.delete_notification', notification_id=notification.id) }}" class="delete-notification">
+                        <button type="submit" class="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="flex justify-center mt-6 space-x-2">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('notifications.notifications', page=pagination.prev_num) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white">Previous</a>
+        {% endif %}
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+            <a href="{{ url_for('notifications.notifications', page=p) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg {% if p == pagination.page %}ring-2 ring-primary dark:text-primary{% endif %} dark:text-white">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <a href="{{ url_for('notifications.notifications', page=pagination.next_num) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-12 text-center">
+        <i class="fas fa-bell text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
+        <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">No Notifications</h3>
+        <p class="text-gray-500 dark:text-gray-400">You're all caught up!</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.notification-item').click(function() {
+        const notificationId = $(this).attr('id').replace('notification-', '');
+        const url = '/notifications/mark-read/' + notificationId;
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    $(this).removeClass('bg-blue-50/50 dark:bg-blue-900/10');
+                    $(this).find('.bg-primary').remove();
+                }
+            }.bind(this)
+        });
+    });
+
+    $('.delete-notification').submit(function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const notificationItem = form.closest('.notification-item');
+
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    notificationItem.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

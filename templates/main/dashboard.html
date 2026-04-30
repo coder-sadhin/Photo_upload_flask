@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8 px-0 sm:px-1">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <aside class="lg:col-span-4 order-2 lg:order-1">
+            <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-6 lg:sticky lg:top-24">
+                <div class="text-center mb-6">
+                    <img src="{{ url_for('static', filename='uploads/profile_pics/' + current_user.profile.profile_picture) }}"
+                         class="w-24 h-24 rounded-full object-cover mx-auto mb-4 ring-4 ring-primary/20">
+                    <h2 class="text-xl font-bold dark:text-white">{{ current_user.username }}</h2>
+                    <p class="text-gray-500 dark:text-gray-400">{{ current_user.profile.full_name }}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="text-center p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <p class="text-2xl font-bold text-primary">{{ total_posts }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Posts</p>
+                    </div>
+                    <div class="text-center p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <p class="text-2xl font-bold text-primary">{{ total_followers }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Followers</p>
+                    </div>
+                    <div class="text-center p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <p class="text-2xl font-bold text-primary">{{ total_following }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Following</p>
+                    </div>
+                    <div class="text-center p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <p class="text-2xl font-bold text-primary">{{ total_saves }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Saved</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <a href="{{ url_for('users.edit_profile') }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-edit w-5 text-primary"></i>
+                        <span class="dark:text-white">Edit Profile</span>
+                    </a>
+                    <a href="{{ url_for('auth.change_password') }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-lock w-5 text-primary"></i>
+                        <span class="dark:text-white">Change Password</span>
+                    </a>
+                    <a href="{{ url_for('favorites.favorites') }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-bookmark w-5 text-primary"></i>
+                        <span class="dark:text-white">Saved Posts</span>
+                    </a>
+                    <a href="{{ url_for('main.settings') }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-cog w-5 text-primary"></i>
+                        <span class="dark:text-white">Settings</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <div class="lg:col-span-8 order-1 lg:order-2 space-y-6">
+            <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-6">
+                <h2 class="text-lg font-bold mb-4 dark:text-white flex items-center gap-2">
+                    <i class="fas fa-pen-to-square text-primary"></i> Create a post
+                </h2>
+                <form method="POST" action="{{ url_for('posts.create_post') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="flex items-start gap-4">
+                        <img src="{{ url_for('static', filename='uploads/profile_pics/' + current_user.profile.profile_picture) }}"
+                             alt="" class="w-11 h-11 rounded-full object-cover shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <textarea name="content" rows="3" placeholder="What's on your mind?"
+                                      class="w-full bg-gray-100 dark:bg-dark rounded-xl p-4 resize-none focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm"
+                                      maxlength="2200"></textarea>
+                            <div class="flex flex-col gap-2 mt-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <label class="cursor-pointer p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0">
+                                            <i class="fas fa-image text-primary"></i>
+                                            <input type="file" name="media" class="hidden" accept="image/*,video/*" multiple>
+                                        </label>
+                                        <select name="visibility" class="bg-transparent text-sm text-gray-600 dark:text-gray-400 focus:outline-none cursor-pointer max-w-[9rem]">
+                                            <option value="public">🌍 Public</option>
+                                            <option value="followers">👥 Followers</option>
+                                            <option value="private">🔒 Private</option>
+                                        </select>
+                                        <select name="category_id" class="bg-transparent text-sm text-gray-600 dark:text-gray-400 focus:outline-none cursor-pointer max-w-[10rem]">
+                                            <option value="">📁 Category</option>
+                                            {% for c in categories %}
+                                            <option value="{{ c.id }}">{{ c.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="bg-primary hover:bg-secondary text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors shrink-0">
+                                        Post
+                                    </button>
+                                </div>
+                                <input type="text" name="category_new" maxlength="80" placeholder="Or type a new category…"
+                                       class="w-full text-sm bg-gray-100 dark:bg-dark rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:text-white">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <a href="{{ url_for('main.home') }}" class="text-sm text-primary font-medium hover:underline">Home feed</a>
+                    <span class="text-gray-300 dark:text-gray-600">·</span>
+                    <a href="{{ url_for('main.explore') }}" class="text-sm text-primary font-medium hover:underline">Explore</a>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-bold mb-4 dark:text-white">Activity Overview</h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="p-4 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-xl">
+                        <i class="fas fa-heart text-red-500 text-2xl mb-2"></i>
+                        <p class="text-2xl font-bold dark:text-white">{{ total_likes }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Likes Given</p>
+                    </div>
+                    <div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl">
+                        <i class="fas fa-comment text-blue-500 text-2xl mb-2"></i>
+                        <p class="text-2xl font-bold dark:text-white">{{ recent_notifications|length }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Recent Activity</p>
+                    </div>
+                    <div class="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl">
+                        <i class="fas fa-bell text-green-500 text-2xl mb-2"></i>
+                        <p class="text-2xl font-bold dark:text-white">{{ unread_notifications }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Unread Notifications</p>
+                    </div>
+                    <div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl">
+                        <i class="fas fa-share text-purple-500 text-2xl mb-2"></i>
+                        <p class="text-2xl font-bold dark:text-white">{{ total_posts }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Your Posts</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-bold mb-4 dark:text-white">Recent Posts</h2>
+
+                {% if recent_posts %}
+                <div class="space-y-4">
+                    {% for post in recent_posts %}
+                    <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-dark rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        {% set first_media = post.media.first() %}
+                        {% if first_media %}
+                            <img src="{{ url_for('static', filename='uploads/post_media/' + first_media.file_path) }}"
+                                 class="w-16 h-16 rounded-lg object-cover shrink-0" alt="">
+                        {% else %}
+                            <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                                <i class="fas fa-image text-white"></i>
+                            </div>
+                        {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-gray-800 dark:text-gray-200 line-clamp-2 break-words">{{ (post.content or '')[:100] or 'Media post' }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ post.created_at.strftime('%b %d, %Y') }} · {{ post.get_likes_count() }} likes{% if post.category %} · {{ post.category.name }}{% endif %}</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400 shrink-0"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 dark:text-gray-400 text-center py-8">No posts yet. Create your first post!</p>
+                {% endif %}
+            </div>
+
+            {% if recent_notifications %}
+            <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-bold mb-4 dark:text-white">Recent Notifications</h2>
+
+                <div class="space-y-3">
+                    {% for notification in recent_notifications[:5] %}
+                    <div class="flex items-start space-x-3 p-3 rounded-xl {% if not notification.is_read %}bg-blue-50 dark:bg-blue-900/20{% endif %}">
+                        <img src="{{ url_for('static', filename='uploads/profile_pics/' + notification.actor.profile.profile_picture) }}"
+                             class="w-10 h-10 rounded-full object-cover">
+                        <div class="flex-1">
+                            <p class="text-sm dark:text-white">
+                                <span class="font-semibold">{{ notification.actor.username }}</span>
+                                {% if notification.notification_type == 'like' %}
+                                    liked your post
+                                {% elif notification.notification_type == 'comment' %}
+                                    commented on your post
+                                {% elif notification.notification_type == 'follow' %}
+                                    started following you
+                                {% elif notification.notification_type == 'reply' %}
+                                    replied to your comment
+                                {% elif notification.notification_type == 'comment_like' %}
+                                    liked your comment
+                                {% endif %}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}</p>
+                        </div>
+                        {% if not notification.is_read %}
+                        <span class="w-2 h-2 bg-primary rounded-full"></span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <a href="{{ url_for('notifications.notifications') }}" class="block text-center text-primary hover:underline mt-4">
+                    View All Notifications
+                </a>
+            </div>
+            {% endif %}
+
+            {% if suggested_users %}
+            <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-bold mb-4 dark:text-white">People You May Know</h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for user in suggested_users %}
+                    <div class="text-center p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <img src="{{ url_for('static', filename='uploads/profile_pics/' + user.profile.profile_picture) }}"
+                             class="w-16 h-16 rounded-full object-cover mx-auto mb-3">
+                        <p class="font-semibold text-sm dark:text-white">{{ user.username }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">{{ user.profile.full_name }}</p>
+                        <button class="follow-btn w-full px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-secondary transition-colors" data-user-id="{{ user.id }}">
+                            Follow
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.follow-btn').click(function() {
+        const userId = $(this).data('user-id');
+        const btn = $(this);
+
+        $.ajax({
+            url: '/follow/' + userId,
+            method: 'POST',
+            headers: { 'X-CSRFToken': $('meta[name=csrf-token]').attr('content') || '{{ csrf_token() }}' },
+            success: function(response) {
+                if (response.success) {
+                    if (response.following) {
+                        btn.text('Following').removeClass('bg-primary hover:bg-secondary').addClass('bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white');
+                    } else {
+                        btn.text('Follow').removeClass('bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white').addClass('bg-primary hover:bg-secondary');
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

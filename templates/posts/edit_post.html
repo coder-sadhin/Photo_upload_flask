@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <h1 class="text-2xl font-bold mb-6 dark:text-white">Edit Post</h1>
+
+    <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-6">
+        <form method="POST" action="{{ url_for('posts.edit_post', post_id=post.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</label>
+                <textarea name="content" rows="6"
+                          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-dark focus:ring-2 focus:ring-primary dark:text-white resize-none">{{ post.content or '' }}</textarea>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Visibility</label>
+                <select name="visibility" class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-dark focus:ring-2 focus:ring-primary dark:text-white">
+                    <option value="public" {% if post.visibility == 'public' %}selected{% endif %}>🌍 Public</option>
+                    <option value="followers" {% if post.visibility == 'followers' %}selected{% endif %}>👥 Followers Only</option>
+                    <option value="private" {% if post.visibility == 'private' %}selected{% endif %}>🔒 Private</option>
+                </select>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                <select name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-dark focus:ring-2 focus:ring-primary dark:text-white mb-2">
+                    <option value="">— No category —</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}" {% if post.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="category_new" maxlength="80" placeholder="Or create / switch by typing a new category…"
+                       class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-dark focus:ring-2 focus:ring-primary dark:text-white text-sm">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">If you fill “new category”, it overrides the dropdown.</p>
+            </div>
+
+            {% if post.media.count() > 0 %}
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Media</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for media in post.media %}
+                        {% if media.media_type == 'image' %}
+                        <img src="{{ url_for('static', filename='uploads/post_media/' + media.file_path) }}"
+                             class="rounded-xl w-full h-40 object-cover">
+                        {% elif media.media_type == 'video' %}
+                        <video controls class="rounded-xl w-full h-40">
+                            <source src="{{ url_for('static', filename='uploads/post_media/' + media.file_path) }}">
+                        </video>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Media cannot be edited. Delete and recreate the post to change media.</p>
+            </div>
+            {% endif %}
+
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('posts.view_post', post_id=post.id) }}" class="px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-3 bg-primary text-white rounded-xl hover:bg-secondary transition-colors font-semibold">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

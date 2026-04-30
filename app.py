@@ -1,94 +1,54 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from livereload import Server
 import os
-from werkzeug.utils import secure_filename
-from datetime import datetime
-import uuid
+from app import create_app, db
+from app.models import *
 
-app = Flask(__name__)
-app.secret_key = 'fudskjt438r79873rhdkjhf87982378rfd@kjdsp'  # Change this!
-
-# Configuration for image uploads
-UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
-
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024  # 30MB max
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# ====================== ROUTES ======================
-
-@app.route('/')
-def index():
-    """Home page - Requirements & Dashboard"""
-    return render_template('index.html')
+app = create_app(os.environ.get('FLASK_ENV', 'development'))
 
 
-@app.route('/file-product', methods=['GET', 'POST'])
-def file_product():
-    if request.method == 'POST':
-        product_id = request.form.get('product_id')
-        files = request.files.getlist('images')
+@app.shell_context_processor
+def make_shell_context():
+    return {
+        'db': db,
+        'User': User,
+        'Profile': Profile,
+        'Post': Post,
+        'PostMedia': PostMedia,
+        'PostLike': PostLike,
+        'PostSave': PostSave,
+        'Comment': Comment,
+        'CommentLike': CommentLike,
+        'Follow': Follow,
+        'Notification': Notification,
+        'PasswordReset': PasswordReset,
+        'Category': Category
+    }
 
-        # Basic Validation
-        if not product_id or len(files) != 3:
-            return render_template('fail.html', error_message="You must provide a Product ID and exactly 3 images.")
 
-        try:
-            # Create folder
-            product_path = os.path.join(app.config['UPLOAD_FOLDER'], product_id)
-            os.makedirs(product_path, exist_ok=True)
+@app.cli.command('create-default-files')
+def create_default_files():
+    """Create default profile and cover images."""
+    from PIL import Image
+    import os
 
-            # Save Files
-            for file in files:
-                if file.filename:
-                    filename = secure_filename(file.filename)
-                    file.save(os.path.join(product_path, filename))
+    profile_pics = app.config['PROFILE_PICS_FOLDER']
+    cover_photos = app.config['COVER_PHOTOS_FOLDER']
 
-            # ✅ SHOW SUCCESS PAGE
-            return render_template('success.html', product_id=product_id)
+    os.makedirs(profile_pics, exist_ok=True)
+    os.makedirs(cover_photos, exist_ok=True)
 
-        except Exception as e:
-            return render_template('fail.html', error_message=str(e))
+    default_profile = os.path.join(profile_pics, 'default_profile.png')
+    default_cover = os.path.join(cover_photos, 'default_cover.jpg')
 
-    return render_template('file_product.html')
+    if not os.path.exists(default_profile):
+        img = Image.new('RGB', (400, 400), color=(100, 100, 100))
+        img.save(default_profile)
 
-# 🔍 THE FIX: This route finds the specific folder you just created
-@app.route('/get-product/<product_id>')
-def get_product(product_id):
-    # Construct the path to the folder
-    product_dir = os.path.join(app.config['UPLOAD_FOLDER'], product_id)
-    
-    if os.path.exists(product_dir):
-        # Gather all images in that specific folder
-        images = []
-        for f in os.listdir(product_dir):
-            if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-                # Generate correct URL for the frontend
-                img_url = url_for('static', filename=f'uploads/{product_id}/{f}')
-                images.append(img_url)
-        
-        return jsonify({
-            "name": "Verified Artisan Item",
-            "product_id": product_id,
-            "images": images
-        }), 200
-    
-    # If folder doesn't exist, search fails
-    return jsonify({"error": "Product not found"}), 404
+    if not os.path.exists(default_cover):
+        img = Image.new('RGB', (1200, 400), color=(100, 100, 100))
+        img.save(default_cover)
+
+    print('Default files created!')
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
-    # server = Server(app.wsgi_app)
-    
-    # Watch templates and static files
-    # server.watch('app/templates/')
-    # server.watch('app/static/')
-    # server.serve(port=5000, debug=True)
-
-    # app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)

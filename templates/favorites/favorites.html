@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8">
+    <h1 class="text-2xl font-bold mb-6 dark:text-white">Saved Posts</h1>
+
+    {% if posts %}
+    <div class="space-y-6">
+        {% for post in posts %}
+        <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm post-card" id="post-{{ post.id }}">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <a href="{{ url_for('users.profile', username=post.author.username) }}">
+                            <img src="{{ url_for('static', filename='uploads/profile_pics/' + post.author.profile.profile_picture) }}"
+                                 class="w-10 h-10 rounded-full object-cover">
+                        </a>
+                        <div>
+                            <a href="{{ url_for('users.profile', username=post.author.username) }}" class="font-semibold dark:text-white hover:underline">
+                                {{ post.author.username }}
+                            </a>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ post.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                            </p>
+                        </div>
+                    </div>
+                    <button class="save-btn text-yellow-500" data-post-id="{{ post.id }}">
+                        <i class="fas fa-bookmark text-xl"></i>
+                    </button>
+                </div>
+
+                {% if post.content %}
+                <p class="text-gray-800 dark:text-gray-200 mb-4 whitespace-pre-wrap">{{ post.content }}</p>
+                {% endif %}
+
+                {% if post.media.count() > 0 %}
+                <div class="grid {% if post.media.count() > 1 %}grid-cols-2{% endif %} gap-2 mb-4">
+                    {% for media in post.media %}
+                        {% if media.media_type == 'image' %}
+                        <img src="{{ url_for('static', filename='uploads/post_media/' + media.file_path) }}"
+                             class="rounded-xl w-full object-cover max-h-96 cursor-pointer hover:opacity-90 transition-opacity">
+                        {% elif media.media_type == 'video' %}
+                        <video controls class="rounded-xl w-full">
+                            <source src="{{ url_for('static', filename='uploads/post_media/' + media.file_path) }}">
+                        </video>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center space-x-6">
+                        <button class="like-btn flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors {% if current_user.has_liked_post(post.id) %}text-red-500{% endif %}" data-post-id="{{ post.id }}">
+                            <i class="{% if current_user.has_liked_post(post.id) %}fas{% else %}far{% endif %} fa-heart text-xl"></i>
+                            <span class="likes-count">{{ post.get_likes_count() }}</span>
+                        </button>
+                        <button class="flex items-center space-x-2 text-gray-500 hover:text-primary transition-colors" onclick="window.location.href='{{ url_for('posts.view_post', post_id=post.id) }}'">
+                            <i class="far fa-comment text-xl"></i>
+                            <span>{{ post.get_comments_count() }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="flex justify-center mt-8 space-x-2">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('favorites.favorites', page=pagination.prev_num) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white">Previous</a>
+        {% endif %}
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+            <a href="{{ url_for('favorites.favorites', page=p) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg {% if p == pagination.page %}ring-2 ring-primary dark:text-primary{% endif %} dark:text-white">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <a href="{{ url_for('favorites.favorites', page=pagination.next_num) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-12 text-center">
+        <i class="fas fa-bookmark text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
+        <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">No Saved Posts</h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">Save posts to view them later</p>
+        <a href="{{ url_for('main.home') }}" class="inline-block px-6 py-3 bg-primary text-white rounded-xl hover:bg-secondary transition-colors">
+            Explore Posts
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.like-btn').click(function() {
+        const postId = $(this).data('post-id');
+        const btn = $(this);
+
+        $.ajax({
+            url: '/post/' + postId + '/like',
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    btn.find('i').toggleClass('far fas').toggleClass('text-red-500');
+                    btn.find('.likes-count').text(response.likes_count);
+                }
+            }
+        });
+    });
+
+    $('.save-btn').click(function() {
+        const postId = $(this).data('post-id');
+        const btn = $(this);
+
+        $.ajax({
+            url: '/post/' + postId + '/save',
+            method: 'POST',
+            success: function(response) {
+                if (response.success && !response.saved) {
+                    $('#post-' + postId).fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

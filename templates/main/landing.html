@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 dark:from-dark dark:via-dark-secondary dark:to-dark">
+    <div class="max-w-4xl w-full mx-4">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold bg-gradient-to-r from-primary via-purple-500 to-accent bg-clip-text text-transparent mb-4">
+                SocialMedia
+            </h1>
+            <p class="text-xl text-gray-600 dark:text-gray-400">
+                Connect, share, and grow your social circle
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6 dark:text-white text-center">Features</h2>
+
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <i class="fas fa-camera text-2xl text-primary mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold dark:text-white">Share Media</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Post photos and videos with your followers</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <i class="fas fa-users text-2xl text-primary mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold dark:text-white">Connect with People</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Follow others and grow your network</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <i class="fas fa-heart text-2xl text-primary mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold dark:text-white">Engage & Interact</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Like, comment, and save your favorite posts</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-dark rounded-xl">
+                        <i class="fas fa-bell text-2xl text-primary mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold dark:text-white">Stay Updated</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Get notified about activity on your posts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-2xl p-8 flex flex-col justify-center">
+                <h2 class="text-2xl font-bold mb-6 dark:text-white text-center">Get Started</h2>
+
+                <div class="space-y-4">
+                    <a href="{{ url_for('auth.register') }}" class="block w-full bg-primary hover:bg-secondary text-white text-center py-4 rounded-xl font-semibold transition-all transform hover:scale-105">
+                        Create Account
+                    </a>
+
+                    <a href="{{ url_for('auth.login') }}" class="block w-full bg-gray-100 dark:bg-dark hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-white text-center py-4 rounded-xl font-semibold transition-all">
+                        Log In
+                    </a>
+                </div>
+
+                <p class="text-center text-gray-500 dark:text-gray-400 mt-6 text-sm">
+                    By continuing, you agree to our Terms & Privacy Policy
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

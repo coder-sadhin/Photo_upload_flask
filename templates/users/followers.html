@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <h1 class="text-2xl font-bold mb-6 dark:text-white">{{ user.username }}'s Followers</h1>
+
+    {% if pagination.items %}
+    <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm overflow-hidden">
+        {% for follow in pagination.items %}
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+            <div class="flex items-center justify-between">
+                <a href="{{ url_for('users.profile', username=follow.follower.username) }}" class="flex items-center space-x-4 flex-1">
+                    <img src="{{ url_for('static', filename='uploads/profile_pics/' + follow.follower.profile.profile_picture) }}"
+                         class="w-12 h-12 rounded-full object-cover">
+                    <div>
+                        <p class="font-semibold dark:text-white hover:underline">{{ follow.follower.username }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ follow.follower.profile.full_name }}</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ follow.follower.get_posts_count() }} posts</p>
+                    </div>
+                </a>
+
+                {% if follow.follower != current_user %}
+                    {% if not current_user.is_following(follow.follower.id) %}
+                    <button class="follow-btn px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-secondary transition-colors" data-user-id="{{ follow.follower.id }}">
+                        Follow
+                    </button>
+                    {% else %}
+                    <button class="follow-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" data-user-id="{{ follow.follower.id }}">
+                        Following
+                    </button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="flex justify-center mt-6 space-x-2">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('users.followers', username=user.username, page=pagination.prev_num) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white">Previous</a>
+        {% endif %}
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+            <a href="{{ url_for('users.followers', username=user.username, page=p) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg {% if p == pagination.page %}ring-2 ring-primary dark:text-primary{% endif %} dark:text-white">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <a href="{{ url_for('users.followers', username=user.username, page=pagination.next_num) }}" class="px-4 py-2 bg-white dark:bg-dark-secondary rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-12 text-center">
+        <i class="fas fa-users text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
+        <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">No Followers Yet</h3>
+        <p class="text-gray-500 dark:text-gray-400">{{ user.username }} hasn't gained any followers yet.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.follow-btn').click(function() {
+        const userId = $(this).data('user-id');
+        const btn = $(this);
+
+        $.ajax({
+            url: '/follow/' + userId,
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    if (response.following) {
+                        btn.text('Following').removeClass('bg-primary hover:bg-secondary text-white').addClass('bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600');
+                    } else {
+                        btn.text('Follow').removeClass('bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600').addClass('bg-primary hover:bg-secondary text-white');
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

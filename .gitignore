@@ -1,28 +1,25 @@
-# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.sqlite3
-
-# Virtual Environment
+*$py.class
+*.so
+.Python
 env/
 venv/
-ENV/
-
-# Flask
-instance/
-.webassets-cache
-
-# Environment variables
+.venv/
 .env
-
-# VS Code
+.env.local
+instance/
+.idea/
 .vscode/
-
-# Node
-node_modules/
-package-lock.json
-
-# OS files
-site.db
+*.swp
+*.swo
+*~
+.DS_Store
+social_media.db
+*.log
+static/uploads/profile_pics/*
+!static/uploads/profile_pics/.gitkeep
+static/uploads/cover_photos/*
+!static/uploads/cover_photos/.gitkeep
+static/uploads/post_media/*
+!static/uploads/post_media/.gitkeep

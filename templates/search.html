@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <h1 class="text-2xl font-bold mb-6 dark:text-white">Search Results</h1>
+
+    {% if query %}
+    <p class="text-gray-500 dark:text-gray-400 mb-6">Showing results for "{{ query }}"</p>
+    {% endif %}
+
+    {% if users %}
+    <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm overflow-hidden mb-8">
+        <h2 class="font-bold text-lg p-4 border-b border-gray-100 dark:border-gray-700 dark:text-white">Users</h2>
+
+        {% for user in users %}
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+            <div class="flex items-center justify-between">
+                <a href="{{ url_for('users.profile', username=user.username) }}" class="flex items-center space-x-4 flex-1">
+                    <img src="{{ url_for('static', filename='uploads/profile_pics/' + user.profile.profile_picture) }}"
+                         class="w-12 h-12 rounded-full object-cover">
+                    <div>
+                        <p class="font-semibold dark:text-white hover:underline">{{ user.username }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.profile.full_name }}</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ user.get_posts_count() }} posts · {{ user.get_followers_count() }} followers</p>
+                    </div>
+                </a>
+
+                {% if user != current_user %}
+                    {% if not current_user.is_following(user.id) %}
+                    <button class="follow-btn px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-secondary transition-colors" data-user-id="{{ user.id }}">
+                        Follow
+                    </button>
+                    {% else %}
+                    <button class="follow-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" data-user-id="{{ user.id }}">
+                        Following
+                    </button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white dark:bg-dark-secondary rounded-2xl shadow-sm p-12 text-center">
+        <i class="fas fa-search text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
+        <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">No Results Found</h3>
+        <p class="text-gray-500 dark:text-gray-400">Try searching for something else</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.follow-btn').click(function() {
+        const userId = $(this).data('user-id');
+        const btn = $(this);
+
+        $.ajax({
+            url: '/follow/' + userId,
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    if (response.following) {
+                        btn.text('Following').removeClass('bg-primary hover:bg-secondary text-white').addClass('bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600');
+                    } else {
+                        btn.text('Follow').removeClass('bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600').addClass('bg-primary hover:bg-secondary text-white');
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
